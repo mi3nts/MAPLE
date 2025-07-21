@@ -36,9 +36,13 @@ def process_TGS2611C00(df):
     return df[keep_existing(df, keep_cols)]
 
 def process_GSR001ACON(df):
-    keep_cols = ['dateTime','methane', 'carbonDioxide', 'water','carbonMonoxide','nitrousOxide']
-    return df[keep_existing(df, keep_cols)]
-
+    keep_cols = ['dateTime', 'methane', 'carbonDioxide', 'water', 'carbonMonoxide', 'nitrousOxide']
+    df = df[keep_existing(df, keep_cols)]
+    
+    # Drop rows where methane is 0 or NaN
+    df = df[df['methane'].fillna(0) != 0]
+    
+    return df
 
 def process_INIR2ME5(df):
     keep_cols = ['dateTime','methane', 'temperature']

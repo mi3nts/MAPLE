@@ -34,7 +34,7 @@ target_column = 'methane_GSR001ACON'
 # --- Loop through experiments ---
 for experiment_name, exp_info in experiments.items():
     nodeID = exp_info["nodeID"]
-    filtered_file = f"{output_folder}/{experiment_name}_{nodeID}_filtered.pkl"
+    filtered_file = f"{output_folder}/{nodeID}_{experiment_name}_filtered.pkl"
     
     if not os.path.exists(filtered_file):
         print(f"[ERROR] File not found: {filtered_file}")
@@ -57,16 +57,13 @@ for experiment_name, exp_info in experiments.items():
         continue
 
     # Split and sort
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3)
     X_train, X_test = X_train.sort_index(), X_test.sort_index()
     y_train, y_test = y_train.sort_index(), y_test.sort_index()
 
     train_indices = np.where(X.index.isin(X_train.index))[0]
     test_indices = np.where(X.index.isin(X_test.index))[0]
     
-    dfCleanedTrain = dfCleaned.iloc[train_indices]
-    dfCleanedTest  = dfCleaned.iloc[test_indices]
-
     # Save processed data
     data_to_save = {
         'features': features,
@@ -81,6 +78,6 @@ for experiment_name, exp_info in experiments.items():
         'test_indices': test_indices,
     }
 
-    save_path = f"{output_folder}/{experiment_name}_{nodeID}_filtered_train_test_split_data.pkl"
+    save_path = f"{output_folder}/{nodeID}_{experiment_name}_filtered_train_test_split_data.pkl"
     joblib.dump(data_to_save, save_path)
     print(f"[SAVED] {save_path}")

@@ -41,7 +41,7 @@ for exp_name, exp_info in experiments.items():
             print(f"[EMPTY] No data found for {exp_name}")
             continue
 
-        output_path = os.path.join(output_folder, f"{exp_name}_{nodeID}_filtered.pkl")
+        output_path = os.path.join(output_folder, f"{nodeID}_{exp_name}_filtered.pkl")
         df_filtered.to_pickle(output_path)
 
         print(f"[SAVED] {output_path} | Rows: {len(df_filtered)}")

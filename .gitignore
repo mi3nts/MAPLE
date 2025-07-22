@@ -1,5 +1,7 @@
 *.yaml
 
+*raw.pkl
+
 largerFiles/*
 
 

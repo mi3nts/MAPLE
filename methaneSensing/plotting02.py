@@ -78,7 +78,7 @@ os.makedirs(plot_folder, exist_ok=True)
 for experiment_name, exp_info in experiments.items():
     nodeID = exp_info["nodeID"]
 
-    experiment_path = f"{output_folder}/{experiment_name}_{nodeID}_filtered_train_test_split_data.pkl"
+    experiment_path = f"{output_folder}/{nodeID}_{experiment_name}_filtered_train_test_split_data.pkl"
 
     if not os.path.exists(experiment_path):
         print(f"[ERROR] Processed data not found: {experiment_path}")
@@ -98,13 +98,14 @@ for experiment_name, exp_info in experiments.items():
     for mlPrefix in mlAlgorythms:
 
         all_predictions = []
+        sub_names       = [] 
         for subExperiment in sub_experiments:
             
             
             sub_name = subExperiment["name"]
             fileID = f"{nodeID}_{experiment_name}_{sub_name}"
 
-            model_path = f"{ml_output_folder}/dataSetsWithML_{fileID}_{mlPrefix}.pkl"
+            model_path = f"{ml_output_folder}/{fileID}_{mlPrefix}_ml_data_set.pkl"
             processed_path = f"{output_folder}/{fileID}_processed.pkl"
 
             if not os.path.exists(model_path) or not os.path.exists(processed_path):
@@ -126,7 +127,7 @@ for experiment_name, exp_info in experiments.items():
                 "r2": r2Test,
                 "rmse": rmseTest,
             })
-
+            sub_names.append(sub_name)
  
         # === Plot Time Series with All Sub-Experiments ===
         plt.figure(figsize=(18, 10))
@@ -148,8 +149,10 @@ for experiment_name, exp_info in experiments.items():
         plt.grid(True)
         plt.tight_layout()
 
+        # Check if all names end with "_Climate"
+        combined_name = "_".join(sub_names)
         # Save
-        combined_plot_path = f"{plot_folder}/{nodeID}_{experiment_name}_{mlPrefix}_time_series_all_sensors.png"
+        combined_plot_path = f"{plot_folder}/{nodeID}_{experiment_name}_{combined_name}_{mlPrefix}_time_series_all_sensors.png"
         plt.savefig(combined_plot_path, dpi=300)
        
         plt.close()

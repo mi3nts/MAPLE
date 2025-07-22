@@ -19,6 +19,9 @@ if os.path.exists(montserrat_path):
     for font_file in font_files:
         font_manager.fontManager.addfont(font_file)
 
+
+
+
 # === Matplotlib Style ===
 rcParams.update({
     'font.family': 'Montserrat',
@@ -54,7 +57,7 @@ if not os.path.exists(config_path):
 with open(config_path, "r") as file:
     experiments_yaml = yaml.safe_load(file)
 
-required_keys = ["experiments", "sub_experiments", "mlAlgorythms"]
+required_keys = ["experiments", "sub_experiments", "mlAlgorythms","featureLabels"]
 
 missing_keys = [key for key in required_keys if key not in experiments_yaml]
 
@@ -62,9 +65,12 @@ if missing_keys:
     raise KeyError(f"[ERROR] Missing required keys in YAML: {', '.join(missing_keys)}")
 
 # Now safely assign them
-experiments     = experiments_yaml["experiments"]
-sub_experiments = experiments_yaml["sub_experiments"]
-mlAlgorythms    = experiments_yaml["mlAlgorythms"]
+experiments        = experiments_yaml["experiments"]
+sub_experiments    = experiments_yaml["sub_experiments"]
+mlAlgorythms       = experiments_yaml["mlAlgorythms"]
+feature_labels_map = experiments_yaml["featureLabels"]
+
+
 
 
 output_folder      = "filteredExperiments"
@@ -92,10 +98,12 @@ for experiment_name, exp_info in experiments.items():
 
     for subExperiment in sub_experiments:
         
+        
         for mlPrefix in mlAlgorythms:
 
 
             sub_name = subExperiment["name"]
+            short_name = sub_name.split("_")[0]
             fileID = f"{nodeID}_{experiment_name}_{sub_name}"
 
             processed_path = f"{output_folder}/{fileID}_processed.pkl"
@@ -113,9 +121,9 @@ for experiment_name, exp_info in experiments.items():
 
             # === Load data and model ===
             data       = joblib.load(processed_path)
+            # print(data.keys())
+            
             model_data = joblib.load(model_path)
-
-
 
             X_train_scaled = data["X_train_scaled"]
             y_train        = data["y_train"]
@@ -123,6 +131,8 @@ for experiment_name, exp_info in experiments.items():
             y_test         = data["y_test"]
             X_all_scaled   = data["X_all_scaled"]
             y_all          = data["y_all"]
+
+            X_train        = data["X_train"]
 
             best_model = model_data["best_model"]
             r2Train    = model_data["r2Train"]
@@ -150,7 +160,7 @@ for experiment_name, exp_info in experiments.items():
 
             # === Plot info ===
             ml_algorithm = type(best_model).__name__
-            plot_title   =f'{sub_name} Scatter Plot'
+            plot_title   =f'{short_name} Scatter Plot'
             plot_filename = f"{plot_folder}/{fileID}_{mlPrefix}_scatter.png"
 
             # === Plot ===
@@ -235,7 +245,7 @@ for experiment_name, exp_info in experiments.items():
             plt.xlabel(r'True CH$_4$ (ppm)', fontsize=25)
             plt.ylabel(r'Estimated CH$_4$ (ppm)', fontsize=25)
             # plt.title(r'CH$_4$ Quantile-Quantile Plot (Log Scale)', fontsize=25, pad=20)
-            plt.title(f'{sub_name} Quantile-Quantile Plot (Log Scale)', fontsize=25, pad=20)
+            plt.title(f'{short_name} Quantile-Quantile Plot (Log Scale)', fontsize=25, pad=20)
 
             plt.xticks(fontsize=20)
             plt.yticks(fontsize=20)
@@ -267,7 +277,7 @@ for experiment_name, exp_info in experiments.items():
 
             plt.xlabel(r'True CH$_4$ (ppm)', fontsize=25)
             plt.ylabel(r'Estimated CH$_4$ (ppm)', fontsize=25)
-            plt.title(f'{sub_name} Quantile-Quantile Plot', fontsize=25, pad=20)
+            plt.title(f'{short_name} Quantile-Quantile Plot', fontsize=25, pad=20)
 
             plt.xticks(fontsize=20)
             plt.yticks(fontsize=20)
@@ -310,7 +320,7 @@ for experiment_name, exp_info in experiments.items():
             plt.yticks(fontsize=20)
 
             # Title and labels
-            plt.title(f'{sub_name} Time Series (Train vs Test)', fontsize=25, pad=20)
+            plt.title(f'{short_name} Time Series (Train vs Test)', fontsize=25, pad=20)
             plt.xlabel('Datetime (UTC)', fontsize=25)
             plt.ylabel('CH$_4$ (ppm)', fontsize=25)
             plt.legend(fontsize=16)
@@ -323,3 +333,34 @@ for experiment_name, exp_info in experiments.items():
             plt.close()
 
             print(f"[SAVED] Train/Test time series plot saved: {time_series_path}")
+
+            if mlPrefix == "RF":
+                ## Get feature importances
+                custom_labels = [feature_labels_map.get(f, f) for f in X_train.columns]
+
+                feature_importances = pd.Series(best_model.feature_importances_, index= custom_labels )
+                feature_importances = feature_importances.sort_values(ascending=False)
+
+                # Plot feature importances
+                plt.figure(figsize=(16, 9))
+                # ax = feature_importances.plot(kind='barh')
+
+
+                ax = feature_importances.plot(kind='barh', color=[ '#1e81b0' if i > 2 else '#3cd184' for i in range(len(feature_importances))])
+
+                
+                plt.title(f'{short_name} Predictor Importance Estimates', fontsize=25, pad=20)
+                plt.xlabel('Estimated Importance', fontsize=25)
+                plt.ylabel('Predictors', fontsize=25)
+                plt.xticks(fontsize=20)
+                plt.yticks(fontsize=20)
+                # plt.xlim(0, .3)
+
+                # Invert y-axis to have the most important features at the top
+
+                plt.tight_layout(rect=[0, 0, 1, 1])
+                plt.gca().invert_yaxis()            # Save
+                pred_path = f"{plot_folder}/{fileID}_{mlPrefix}_predictor_importaince.png"
+                plt.savefig(pred_path, dpi=300)
+                plt.close()
+                print(f"[SAVED] Predictor Importaince plot saved: {pred_path}")

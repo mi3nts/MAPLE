@@ -10,6 +10,7 @@ from cycler import cycler
 from sklearn.metrics import r2_score, mean_squared_error
 import time
 import sys 
+import matplotlib.dates as mdates
 
 # === Font Setup ===
 montserrat_path = "Montserrat,Sankofa_Display/Montserrat/static"
@@ -143,6 +144,8 @@ for experiment_name, exp_info in experiments.items():
         plt.xlabel("Datetime (UTC)", fontsize=22)
         plt.ylabel("CH$_4$ (ppm)", fontsize=22)
         plt.title(f"CH$_4$ Time Series", fontsize=25, pad=20)
+        plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%H:%M'))  # <-- Only time on x-axis
+
         plt.xticks(fontsize=18, rotation=45)
         plt.yticks(fontsize=18)
         plt.legend(fontsize=14)

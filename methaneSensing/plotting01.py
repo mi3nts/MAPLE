@@ -189,7 +189,8 @@ for experiment_name, exp_info in experiments.items():
             plt.grid(True, which='both', linestyle='--', linewidth=0.5)
             plt.xticks(fontsize=18)
             plt.yticks(fontsize=18)
-            plt.legend(fontsize=16)
+            plt.legend(fontsize=16, loc='upper left')
+
 
             # Save and close
             plt.tight_layout()
@@ -198,6 +199,71 @@ for experiment_name, exp_info in experiments.items():
 
             print(f"[SAVED] Plot saved: {plot_filename}")
 
+
+            # Scatter Plot with Lines 
+
+            # === Plot info ===
+            ml_algorithm = type(best_model).__name__
+            plot_title   =f'{short_name} Scatter Plot'
+            plot_filename = f"{plot_folder}/{fileID}_{mlPrefix}_scatter_lines.png"
+
+            
+            # === Plot ===
+            plt.figure(figsize=(10, 10))
+            plt.xlim(0, upper_limit)
+            plt.ylim(0, upper_limit)
+
+            # Training scatter
+            plt.scatter(y_train, y_pred_train,
+                        color='#1e81b0',
+                        label=f'Train (n={n_train}, R²={r2Train:.4f}, RMSE={rmseTrain:.4f})')
+
+            # Test scatter
+            plt.scatter(y_test, y_pred_test,
+                        marker='+',
+                        label=f'Test (n={n_test}, R²={r2Test:.4f}, RMSE={rmseTest:.4f})')
+
+            # Regression line for training
+            train_fit = np.polyfit(y_train, y_pred_train, deg=1)
+            x_vals = np.linspace(0, upper_limit, 1000)
+            plt.plot(x_vals,
+                    np.polyval(train_fit, x_vals),
+                    color='#1e81b0',
+                    linestyle='-',
+                    linewidth=2,
+                    label='Train fit')
+
+            # Regression line for testing
+            test_fit = np.polyfit(y_test, y_pred_test, deg=1)
+            plt.plot(x_vals,
+                    np.polyval(test_fit, x_vals),
+                    linestyle='-',
+                    linewidth=2,
+                    label='Test fit')
+
+            # y = x line
+            plt.plot(x_vals, x_vals,
+                    color='#f97171',
+                    linestyle='--',
+                    linewidth=2,
+                    label='y = x')
+
+            # Labels and title
+            plt.xlabel(r'Reference CH$_4$ (ppm)', fontsize=22)
+            plt.ylabel(r'Estimated CH$_4$ (ppm)', fontsize=22)
+            plt.title(plot_title, fontsize=22, pad=20)
+            plt.grid(True, which='both', linestyle='--', linewidth=0.5)
+            plt.xticks(fontsize=18)
+            plt.yticks(fontsize=18)
+            plt.legend(fontsize=16, loc='upper left')
+
+
+            # Save and close
+            plt.tight_layout()
+            plt.savefig(plot_filename, dpi=300)
+            plt.close()
+
+            print(f"[SAVED] Plot saved: {plot_filename}")
 
 
             ####################
@@ -339,6 +405,18 @@ for experiment_name, exp_info in experiments.items():
                 custom_labels = [feature_labels_map.get(f, f) for f in X_train.columns]
 
                 feature_importances = pd.Series(best_model.feature_importances_, index= custom_labels )
+         
+
+                csv_path = "plots/experiment3_feature_importances.csv"
+                if os.path.exists(csv_path):
+                    existing_df = pd.read_csv(csv_path, index_col=0)
+                    combined_df = pd.concat([existing_df, feature_importances.rename("Importance").to_frame().T], ignore_index=True)
+                else:
+                    combined_df = feature_importances.rename("Importance").to_frame().T
+
+                # Save the updated DataFrame
+                combined_df.to_csv(csv_path)
+                
                 feature_importances = feature_importances.sort_values(ascending=False)
 
                 # Plot feature importances

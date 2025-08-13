@@ -2,6 +2,8 @@ import os
 import pandas as pd
 import yaml
 
+# This script does not add lagged time correction to GSR001ACON sensor data
+
 # Load YAML config
 with open("mintsDefinitions.yaml") as file:
     mintsDefinitions = yaml.safe_load(file)
@@ -68,7 +70,7 @@ def get_processor(sensorID):
 
 for nodeID in nodeIDs:
     for sensorID in sensorIDs:
-        pickle_file = f'pickles/{nodeID}_{sensorID}_raw.pkl'
+        pickle_file = f'pickles_ls/{nodeID}_{sensorID}_raw.pkl'
 
         if not os.path.exists(pickle_file):
             print(f"[MISSING] {pickle_file}")
@@ -89,20 +91,23 @@ for nodeID in nodeIDs:
             df['dateTime'] = pd.to_datetime(df['dateTime'], errors='coerce')
 
 
-            correction_seconds = time_corrections.get(sensorID, 0)
-            print(f"[TIME CHECK] {nodeID} | {sensorID}: Correction = {correction_seconds}s")
-            if correction_seconds != 0:
-                df['dateTime'] = df['dateTime'] + pd.to_timedelta(correction_seconds, unit='s')
-                print(f"[TIME SHIFT] Applied {correction_seconds:+}s to {nodeID} | {sensorID}")
+            # correction_seconds = 0
+            # print(f"[TIME CHECK] {nodeID} | {sensorID}: Correction = {correction_seconds}s")
+            # if correction_seconds != 0:
+            #     df['dateTime'] = df['dateTime'] + pd.to_timedelta(correction_seconds, unit='s')
+            #     print(f"[TIME SHIFT] Applied {correction_seconds:+}s to {nodeID} | {sensorID}")
 
 
             df = df.dropna(subset=['dateTime']).set_index('dateTime')
 
             # Resample
-            df_resampled = df.resample(resample_offset).mean().dropna(how='all')
+            # df_resampled = df.resample(resample_offset).mean().dropna(how='all')
+
+
+            df_resampled = df.resample(resample_offset).mean().interpolate(method='time').dropna(how='all')
 
             # Save resampled pickle
-            resampled_pickle = f'pickles/{nodeID}_{sensorID}_resampled.pkl'
+            resampled_pickle = f'pickles_ls/{nodeID}_{sensorID}_resampled.pkl'
             df_resampled.to_pickle(resampled_pickle)
 
             # Store in dictionary using (nodeID, sensorID) as key
@@ -126,5 +131,5 @@ for nodeID in nodeIDs:
     print(f"\n[COMBINED] First 5 rows for {nodeID}:")
     print(combined_df.head())
 
-    combined_df.to_pickle(f"pickles/{nodeID}_combined_resampled.pkl")
+    combined_df.to_pickle(f"pickles_ls/{nodeID}_combined_resampled.pkl")
 

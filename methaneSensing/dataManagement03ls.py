@@ -15,7 +15,7 @@ with open(yaml_file) as file:
 experiments = experiments_yaml["experiments"]
 
 # Output folder
-output_folder = "filteredExperiments"
+output_folder = "filteredExperiments_ls"
 os.makedirs(output_folder, exist_ok=True)
 
 # --- Target variable for filtering ---
@@ -32,7 +32,7 @@ for exp_name, exp_info in experiments.items():
     lower_ppm = exp_info.get("lowerPPM", None)
     upper_ppm = exp_info.get("upperPPM", None)
 
-    combined_file = f"pickles/{nodeID}_combined_resampled.pkl"
+    combined_file = f"pickles_ls/{nodeID}_combined_resampled.pkl"
 
     if not os.path.exists(combined_file):
         print(f"[MISSING] Combined file not found: {combined_file}")

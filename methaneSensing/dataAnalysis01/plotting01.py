@@ -13,7 +13,7 @@ import sys
 
 
 # === Font Setup ===
-montserrat_path = "Montserrat,Sankofa_Display/Montserrat/static"
+montserrat_path = "../Montserrat,Sankofa_Display/Montserrat/static"
 if os.path.exists(montserrat_path):
     font_files = font_manager.findSystemFonts(fontpaths=montserrat_path)
     for font_file in font_files:

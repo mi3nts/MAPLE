@@ -1,0 +1,10 @@
+feature,lag_seconds,lag_samples,peak_corr
+methane_GSR001ACON,0.000000,0,1.000000
+methane_INIR2ME5,-48.000000,-48,0.258034
+barrometricPressureBars_WIMDA,121.000000,121,0.176034
+relativeHumidity_WIMDA,-56.000000,-56,0.162045
+methaneEQBusVoltage_TGS2611C00,-33.000000,-33,0.064540
+dewPoint_WIMDA,-66.000000,-66,0.037260
+airTemperature_WIMDA,-600.000000,-600,-0.010589
+temperature_INIR2ME5,-600.000000,-600,-0.022605
+methane_SJH5,-600.000000,-600,-0.045886
